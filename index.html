@@ -18,14 +18,25 @@
       overflow: hidden;
     }
 
-    /* Background animation (canvas full screen) */
-    canvas#bg {
+    /* Background gradient animation */
+    body::before {
+      content: "";
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 20%, #00ffff55, transparent 60%),
+                  radial-gradient(circle at 80% 80%, #ff00ff55, transparent 60%),
+                  radial-gradient(circle at 50% 50%, #00ff7755, transparent 60%);
+      animation: moveGradient 15s ease-in-out infinite alternate;
       z-index: -1;
+    }
+
+    @keyframes moveGradient {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(-25%, -25%) scale(1.2); }
+      100% { transform: translate(-50%, -50%) scale(1); }
     }
 
     /* Chat container */
@@ -62,9 +73,6 @@
   </style>
 </head>
 <body>
-  <!-- Animated background -->
-  <canvas id="bg"></canvas>
-
   <!-- Chatbox UI -->
   <div class="chatbox">
     <h2>Choose a Chat AI</h2>
@@ -73,8 +81,7 @@
       <option value="1Xz10ytq8N2pVXY1FbzsJ">AI #2</option>
       <option value="WQ4dRj_zed-YksGj13Mxg">AI #3</option>
     </select>
-    <button id="loadBot">Load Bot</button>
-    <button id="toggleChat" style="display:none;">Show Chat</button>
+    <button id="loadBot">Load Chat</button>
   </div>
 
   <script>
@@ -88,71 +95,27 @@
       document.head.appendChild(s);
     })();
 
-    let chatVisible = false;
+    let currentBot = null;
 
     document.getElementById("loadBot").addEventListener("click", async () => {
       const appId = document.getElementById("botSelect").value;
-      if(window.Coherence) {
-        await window.Coherence.init({
-          demo:{enabled:true, appId}
-        });
-        document.getElementById("toggleChat").style.display = "block";
-        chatVisible = false;
-        document.getElementById("toggleChat").innerText = "Show Chat";
-        alert("Bot loaded! Use the button below to open/close the chat.");
-      } else {
+      if (!window.Coherence) {
         alert("Coherence SDK not ready yet, try again in a moment.");
+        return;
       }
-    });
 
-    document.getElementById("toggleChat").addEventListener("click", () => {
-      if(chatVisible) {
+      // Hide previous bot if already loaded
+      if (currentBot) {
         window.Coherence.hide();
-        chatVisible = false;
-        document.getElementById("toggleChat").innerText = "Show Chat";
-      } else {
-        window.Coherence.show();
-        chatVisible = true;
-        document.getElementById("toggleChat").innerText = "Hide Chat";
       }
-    });
 
-    // Simple floating particle background (like Coherence site)
-    const canvas = document.getElementById('bg');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let particles = [];
-    for (let i = 0; i < 80; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        dx: (Math.random() - 0.5) * 0.8,
-        dy: (Math.random() - 0.5) * 0.8,
-        size: Math.random() * 2 + 1
+      // Initialize the new bot
+      await window.Coherence.init({
+        demo: { enabled: true, appId }
       });
-    }
 
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(0,255,255,0.7)";
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-        ctx.fill();
-        p.x += p.dx;
-        p.y += p.dy;
-        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-      });
-      requestAnimationFrame(animate);
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      window.Coherence.show();
+      currentBot = appId;
     });
   </script>
 </body>
