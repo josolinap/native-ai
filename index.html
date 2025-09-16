@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat – josolinap</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      color: white;
+      background: black;
+      overflow: hidden;
+    }
+
+    /* Background animation (canvas full screen) */
+    canvas#bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+
+    /* Chat container */
+    .chatbox {
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #444;
+      border-radius: 12px;
+      padding: 16px;
+      width: 350px;
+      max-width: 90vw;
+      box-shadow: 0 0 20px rgba(0,255,255,0.4);
+      text-align: center;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    button {
+      background: cyan;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #00dddd;
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated background -->
+  <canvas id="bg"></canvas>
+
+  <!-- Chatbox UI -->
+  <div class="chatbox">
+    <h2>Choose a Chat AI</h2>
+    <select id="botSelect">
+      <option value="OzNXIAdGIM74Xn1fBCKvj">AI #1</option>
+      <option value="1Xz10ytq8N2pVXY1FbzsJ">AI #2</option>
+      <option value="WQ4dRj_zed-YksGj13Mxg">AI #3</option>
+    </select>
+    <button id="loadBot">Load Bot</button>
+    <button id="toggleChat" style="display:none;">Show Chat</button>
+  </div>
+
+  <script>
+    // Load Coherence SDK once
+    (function(){
+      var s=document.createElement('script');
+      s.src='https://app.withcoherence.com/sdk/coherence-sdk.js';
+      s.onload=function(){
+        console.log("Coherence SDK loaded");
+      };
+      document.head.appendChild(s);
+    })();
+
+    let chatVisible = false;
+
+    document.getElementById("loadBot").addEventListener("click", async () => {
+      const appId = document.getElementById("botSelect").value;
+      if(window.Coherence) {
+        await window.Coherence.init({
+          demo:{enabled:true, appId}
+        });
+        document.getElementById("toggleChat").style.display = "block";
+        chatVisible = false;
+        document.getElementById("toggleChat").innerText = "Show Chat";
+        alert("Bot loaded! Use the button below to open/close the chat.");
+      } else {
+        alert("Coherence SDK not ready yet, try again in a moment.");
+      }
+    });
+
+    document.getElementById("toggleChat").addEventListener("click", () => {
+      if(chatVisible) {
+        window.Coherence.hide();
+        chatVisible = false;
+        document.getElementById("toggleChat").innerText = "Show Chat";
+      } else {
+        window.Coherence.show();
+        chatVisible = true;
+        document.getElementById("toggleChat").innerText = "Hide Chat";
+      }
+    });
+
+    // Simple floating particle background (like Coherence site)
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        dx: (Math.random() - 0.5) * 0.8,
+        dy: (Math.random() - 0.5) * 0.8,
+        size: Math.random() * 2 + 1
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(0,255,255,0.7)";
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
