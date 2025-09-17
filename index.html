@@ -1,122 +1,407 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat – josolinap</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      color: white;
-      background: black;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coherence Chat Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* Background gradient animation */
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 20% 20%, #00ffff55, transparent 60%),
-                  radial-gradient(circle at 80% 80%, #ff00ff55, transparent 60%),
-                  radial-gradient(circle at 50% 50%, #00ff7755, transparent 60%);
-      animation: moveGradient 15s ease-in-out infinite alternate;
-      z-index: -1;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
 
-    @keyframes moveGradient {
-      0%   { transform: translate(0, 0) scale(1); }
-      50%  { transform: translate(-25%, -25%) scale(1.2); }
-      100% { transform: translate(-50%, -50%) scale(1); }
-    }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background-color: #2c3e50;
+            color: white;
+            transform: translateX(-250px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
 
-    /* Chat container */
-    .chatbox {
-      background: rgba(0,0,0,0.6);
-      border: 1px solid #444;
-      border-radius: 12px;
-      padding: 16px;
-      width: 350px;
-      max-width: 90vw;
-      box-shadow: 0 0 20px rgba(0,255,255,0.4);
-      text-align: center;
-    }
+        .sidebar.open {
+            transform: translateX(0);
+        }
 
-    select, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 8px;
-      border-radius: 6px;
-      border: none;
-    }
+        .sidebar-toggle {
+            position: fixed;
+            left: 10px;
+            top: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            z-index: 1001;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
 
-    button {
-      background: cyan;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+        .sidebar-toggle:hover {
+            background-color: #2980b9;
+        }
 
-    button:hover {
-      background: #00dddd;
-    }
-  </style>
+        .sidebar.open + .sidebar-toggle {
+            left: 260px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: #34495e;
+            border-bottom: 1px solid #4a5f7a;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
+        .app-list {
+            padding: 20px;
+        }
+
+        .app-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #34495e;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .app-item:hover {
+            background-color: #4a5f7a;
+            transform: translateY(-2px);
+        }
+
+        .app-item.active {
+            border-color: #3498db;
+            background-color: #4a5f7a;
+        }
+
+        .app-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .app-id {
+            font-size: 11px;
+            color: #bdc3c7;
+            font-family: monospace;
+        }
+
+        .main-content {
+            margin-left: 0;
+            padding: 80px 20px 20px 20px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .status {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .status h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .status p {
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+
+        .current-app {
+           font-weight: bold;
+            color: #3498db;
+        }
+
+        .clear-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-230px);
+            }
+            
+            .sidebar.open + .sidebar-toggle {
+                left: 240px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Chatbox UI -->
-  <div class="chatbox">
-    <h2>Choose a Chat AI</h2>
-    <select id="botSelect">
-      <option value="OzNXIAdGIM74Xn1fBCKvj">AI #1</option>
-      <option value="1Xz10ytq8N2pVXY1FbzsJ">AI #2</option>
-      <option value="WQ4dRj_zed-YksGj13Mxg">AI #3</option>
-    </select>
-    <button id="loadBot">Load Chat</button>
-  </div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Coherence Chat</h2>
+            <p>Select an AI assistant</p>
+        </div>
+        <div class="app-list">
+            <div class="app-item" data-app-id="OzNXIAdGIM74Xn1fBCKvj">
+                <div class="app-name">Assistant #1</div>
+                <div class="app-id">OzNXIAdGIM74Xn1fBCKvj</div>
+            </div>
+            <div class="app-item" data-app-id="1Xz10ytq8N2pVXY1FbzsJ">
+                <div class="app-name">Assistant #2</div>
+                <div class="app-id">1Xz10ytq8N2pVXY1FbzsJ</div>
+            </div>
+            <div class="app-item" data-app-id="WQ4dRj_zed-YksGj13Mxg">
+                <div class="app-name">Assistant #3</div>
+                <div class="app-id">WQ4dRj_zed-YksGj13Mxg</div>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    // Load Coherence SDK once
-    (function(){
-      var s=document.createElement('script');
-      s.src='https://app.withcoherence.com/sdk/coherence-sdk.js';
-      s.onload=function(){
-        console.log("Coherence SDK loaded");
-      };
-      document.head.appendChild(s);
-    })();
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
 
-    let currentBot = null;
+    <div class="main-content">
+        <div class="status">
+            <h3>Coherence Chat Status</h3>
+            <p id="statusText">No assistant loaded. Please select an assistant from the sidebar.</p>
+            <p id="currentApp"></p>
+            <button class="clear-btn" id="clearBtn" style="display: none;">Clear Current Chat</button>
+        </div>
+    </div>
 
-    document.getElementById("loadBot").addEventListener("click", async () => {
-      const appId = document.getElementById("botSelect").value;
-      if (!window.Coherence) {
-        alert("Coherence SDK not ready yet, try again in a moment.");
-        return;
-      }
+    <script>
+        let currentCoherence = null;
+        let currentAppId = null;
 
-      // Hide previous bot if already loaded
-      if (currentBot) {
-        window.Coherence.hide();
-      }
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const statusText = document.getElementById('statusText');
+        const currentAppDisplay = document.getElementById('currentApp');
+        const clearBtn = document.getElementById('clearBtn');
 
-      // Initialize the new bot
-      await window.Coherence.init({
-        demo: { enabled: true, appId }
-      });
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
 
-      window.Coherence.show();
-      currentBot = appId;
-    });
-  </script>
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // App selection functionality
+        const appItems = document.querySelectorAll('.app-item');
+        
+        appItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const appId = item.getAttribute('data-app-id');
+                const appName = item.querySelector('.app-name').textContent;
+                
+                // Remove active class from all items
+                appItems.forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                item.classList.add('active');
+                 // Load the selected Coherence app
+                loadCoherenceApp(appId, appName);
+                
+                // Close sidebar after selection
+                sidebar.classList.remove('open');
+            });
+        });
+
+        // Function to load Coherence app
+        async function loadCoherenceApp(appId, appName) {
+            try {
+                // Clear any existing Coherence instance
+                if (currentCoherence && window.Coherence) {
+                    try {
+                        window.Coherence.hide();
+                    } catch (e) {
+                        console.log('No existing Coherence to hide');
+                    }
+                }
+
+                // Update status
+                statusText.textContent = `Loading ${appName}...`;
+                currentAppDisplay.textContent = '';
+                clearBtn.style.display = 'none';
+
+                // Remove existing Coherence script if present
+                const existingScript = document.querySelector('script[src*="coherence-sdk.js"]');
+                if (existingScript) {
+                    existingScript.remove();
+                }
+
+                // Create and load new Coherence script
+                const script = document.createElement('script');
+                script.src = 'https://app.withcoherence.com/sdk/coherence-sdk.js';
+                
+                script.onload = async function() {
+                    try {
+                        await window.Coherence.init({
+                            demo: { enabled: true, appId: appId }
+                        });
+                        
+                        window.Coherence.show();
+                        currentCoherence = window.Coherence;
+                        currentAppId = appId;
+                        
+                        // Update status
+                        statusText.textContent = `${appName} is now active and ready to chat!`;
+                        currentAppDisplay.innerHTML = `<strong>Current Assistant:</strong> <span class="current-app">${appName}</span><br><strong>App ID:</strong> <span class="current-app">${appId}</span>`;
+                        clearBtn.style.display = 'inline-block';
+                        
+                    } catch (error) {
+                        console.error('Error initializing Coherence:', error);
+                        statusText.textContent = `Error loading ${appName}. Please try again.`;
+                        currentAppDisplay.textContent = '';
+                        clearBtn.style.display = 'none';
+                    }
+                };
+
+                script.onerror = function() {
+                    statusText.textContent = `Failed to load ${appName}. Please check your connection.`;
+                    currentAppDisplay.textContent = '';
+                    clearBtn.style.display = 'none';
+                };
+
+                document.head.appendChild(script);
+
+            } catch (error) {
+                console.error('Error loading Coherence app:', error);
+                statusText.textContent = `Error loading ${appName}. Please try again.`;
+                currentAppDisplay.textContent = '';
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        // Clear current chat functionality
+        clearBtn.addEventListener('click', () => {
+            try {
+                if (currentCoherence && window.Coherence) {
+                    window.Coherence.hide();
+                }
+                
+                // Remove active class from all items
+                appItems.forEach(i => i.classList.remove('active'));
+                
+                // Reset status
+                statusText.textContent = 'Chat cleared. Please select an assistant from the sidebar.';
+                currentAppDisplay.textContent = '';
+                clearBtn.style.display = 'none';
+                currentCoherence = null;
+                currentAppId = null;
+                
+                // Remove Coherence script
+                const existingScript = document.querySelector('script[src*="coherence-sdk.js"]');
+                if (existingScript) {
+                    existingScript.remove();
+                }
+                
+            } catch (error) {
+                console.error('Error clearing chat:', error);
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Toggle sidebar with Ctrl/Cmd + B
+            if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                e.preventDefault();
+              sidebar.classList.toggle('open');
+            }
+            
+            // Quick select apps with number keys (when sidebar is open)
+            if (sidebar.classList.contains('open')) {
+                if (e.key >= '1' && e.key <= '3') {
+                    e.preventDefault();
+                    const index = parseInt(e.key) - 1;
+                    if (appItems[index]) {
+                        appItems[index].click();
+                    }
+                }
+            }
+            
+            // Clear chat with Ctrl/Cmd + K
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (clearBtn.style.display !== 'none') {
+                    clearBtn.click();
+                }
+            }
+            
+            // Close sidebar with Escape
+            if (e.key === 'Escape') {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Auto-hide sidebar on mobile after 5 seconds
+        let sidebarTimer;
+        function resetSidebarTimer() {
+            clearTimeout(sidebarTimer);
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                sidebarTimer = setTimeout(() => {
+                    sidebar.classList.remove('open');
+                }, 5000);
+            }
+        }
+
+        sidebar.addEventListener('mouseenter', () => clearTimeout(sidebarTimer));
+        sidebar.addEventListener('mouseleave', resetSidebarTimer);
+        
+        // Initialize timer when sidebar opens on mobile
+        sidebarToggle.addEventListener('click', resetSidebarTimer);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                clearTimeout(sidebarTimer);
+            }
+        });
+
+        // Add some helpful console messages
+        console.log('🤖 Coherence Chat Selector loaded!');
+        console.log('💡 Keyboard shortcuts:');
+        console.log('   Ctrl/Cmd + B: Toggle sidebar');
+        console.log('   1, 2, 3: Quick select (when sidebar is open)');
+        console.log('   Ctrl/Cmd + K: Clear current chat');
+        console.log('   Escape: Close sidebar');
+
+    </script>
 </body>
 </html>
